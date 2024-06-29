@@ -35,4 +35,24 @@ df = spark.read.csv(RAW_PATH+'file.csv', header=True, inferSchema=True, schema=s
 # Full load from file.csv.
 df.write.format("delta").mode("overwrite").save(f"""{SILVER_PATH}person""")
 
-df.show()
+# Reading delta table.
+df_old = DeltaTable.forPath(spark, f"""{SILVER_PATH}person""")
+
+# Merge new information/updates from the .csv and delta table.
+df_old.alias("oldData") \
+  .merge(
+    df.alias("newData"),
+    "oldData.id = newData.id") \
+  .whenMatchedUpdate(set = { 
+      "id": col("newData.id") ,
+      "name": col("newData.name") 
+      }) \
+  .whenNotMatchedInsert(values = { 
+      "id": col("newData.id") ,
+      "name": col("newData.name")
+      }
+      ) \
+  .whenNotMatchedBySourceDelete() \
+  .execute()
+
+df_old.toDF().show()
