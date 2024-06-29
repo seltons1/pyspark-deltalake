@@ -6,6 +6,8 @@ def create(file_path) -> None:
     i = 0
 
     with open(file_path, "w") as txt_file:
+        txt_file.write(f"""id,name""")
+        txt_file.write("\n")
         while i < 1000000:
             name = fake.name()
             id = fake.random_int(min=1, max=10000)
@@ -20,6 +22,6 @@ def create(file_path) -> None:
 
 if __name__ == '__main__':
 
-    file_path = "raw/file.txt"
+    file_path = "raw/file.csv"
     
     create(file_path)
