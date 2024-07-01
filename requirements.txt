@@ -1,0 +1,13 @@
+delta==0.4.2
+delta-spark==3.2.0
+deltalake==0.18.1
+Faker==26.0.0
+importlib_metadata==8.0.0
+numpy==2.0.0
+py4j==0.10.9.7
+pyarrow==16.1.0
+pyarrow-hotfix==0.6
+pyspark==3.5.1
+python-dateutil==2.9.0.post0
+six==1.16.0
+zipp==3.19.2
