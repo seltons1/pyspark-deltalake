@@ -23,36 +23,38 @@ spark = configure_spark_with_delta_pip(builder) \
 RAW_PATH = "raw/"
 SILVER_PATH = "silver/"
 
-# Defining schema.
-schema = StructType([
-    StructField("id", StringType(), True),
-    StructField("name", StringType(), True)
-])
+if '__main__' == __name__:
 
-# Reading file.csv from raw.
-df = spark.read.csv(RAW_PATH+'file.csv', header=True, inferSchema=True, schema=schema)
+    # Defining schema.
+    schema = StructType([
+        StructField("id", StringType(), True),
+        StructField("name", StringType(), True)
+    ])
 
-# Full load from file.csv.
-df.write.format("delta").mode("overwrite").save(f"""{SILVER_PATH}person""")
+    # Reading file.csv from raw.
+    df = spark.read.csv(RAW_PATH+'file.csv', header=True, inferSchema=True, schema=schema)
 
-# Reading delta table.
-df_old = DeltaTable.forPath(spark, f"""{SILVER_PATH}person""")
+    # Full load from file.csv.
+    df.write.format("delta").mode("overwrite").save(f"""{SILVER_PATH}person""")
 
-# Merge new information/updates from the .csv and delta table.
-df_old.alias("oldData") \
-  .merge(
-    df.alias("newData"),
-    "oldData.id = newData.id") \
-  .whenMatchedUpdate(set = { 
-      "id": col("newData.id") ,
-      "name": col("newData.name") 
-      }) \
-  .whenNotMatchedInsert(values = { 
-      "id": col("newData.id") ,
-      "name": col("newData.name")
-      }
-      ) \
-  .whenNotMatchedBySourceDelete() \
-  .execute()
+    # Reading delta table.
+    df_old = DeltaTable.forPath(spark, f"""{SILVER_PATH}person""")
 
-df_old.toDF().show()
+    # Merge new information/updates from the .csv and delta table.
+    df_old.alias("oldData") \
+    .merge(
+        df.alias("newData"),
+        "oldData.id = newData.id") \
+    .whenMatchedUpdate(set = { 
+        "id": col("newData.id") ,
+        "name": col("newData.name") 
+        }) \
+    .whenNotMatchedInsert(values = { 
+        "id": col("newData.id") ,
+        "name": col("newData.name")
+        }
+        ) \
+    .whenNotMatchedBySourceDelete() \
+    .execute()
+
+    df_old.toDF().show()
